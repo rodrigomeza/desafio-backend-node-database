@@ -39,8 +39,11 @@ class ImportTransactionsService {
       transactions.push({ title, type, value, category });
     });
 
-    // Espera o fim da busca por informações no arquivo
-    await new Promise(resolve => parseCSV.on('end', resolve));
+    // Espera o fim da busca por informações no arquivo e rejeita em caso de erro no arquivo
+    await new Promise((resolve, reject) => {
+      parseCSV.on('error', err => reject(err));
+      parseCSV.on('end', resolve);
+    });
 
     // Busca por categorias existentes no banco e comparando com o arquivo
     const existentCategories = await categoriesRepository.find({
